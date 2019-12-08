@@ -27,6 +27,18 @@ class InstagramDataset(Dataset):
 		return len(self.graph)
 
 def split_dataset(dataset, batch_size, validation_split):
+	"""
+	Generates training and validation splits
+
+	Arguments:
+	dataset -- A InstagramDataset object dataset, based torch's class  Dataset
+	batch_size -- size of the batch of the datasets
+	validation_split -- percentage of the dataset that will be used in validation.
+	Return:
+	train_dataloader -- training torch dataloader 
+	test_dataloader -- test torch dataloader 
+	"""	
+
 	# Creating data indexes for training and validation splits:
 	dataset_size = len(dataset)
 	indexes = list(range(dataset_size))
@@ -45,8 +57,16 @@ def split_dataset(dataset, batch_size, validation_split):
 
 	return train_dataloader, validation_dataloader
 
-
 def get_features(node_features, no_features): 
+	"""
+	For a given node, returns its features shaped to the convolutional matrix features
+
+	Arguments:
+	node_features -- list of lists containing the features of a node
+	no_features -- Which set of features will be used
+	Return:
+	np array containing the features of a node
+	"""	
 	if(no_features==1):
 		return node_features.embedding
 	features = np.concatenate((node_features.features))	
@@ -57,6 +77,18 @@ def get_features(node_features, no_features):
 		return np.concatenate((node_features.embedding, features, walk))
 
 def sample_graph_features(graph, graph_features, no_edges, no_features=1, siamese=0):
+	"""
+	Generates sampled nodes to train the models.
+
+	Arguments:
+	graph -- graph file used.
+	graph_features -- A list where the indexes are the node's id and the values are the node'srepresentation
+	no_edges -- no_edges of each class to be sampled
+	no_features -- Which set of features will be used. 
+	siamese -- 1 If the dataset is for a siamese network, else 0
+	Return:
+	sampled_graph -- a list with 2*no_edges pairs of nodes (no_edges adjacent and no_edges non adjacent nodes)
+	"""	
 	sampled_graph = []
 
 	edges = list(graph.edges)
@@ -88,11 +120,11 @@ def sample_graph_features(graph, graph_features, no_edges, no_features=1, siames
 	return sampled_graph
 	
 def gcn_features(graph, graph_features, no_features, size):
-		"""
+	"""
 	Generates the matrix features used on convolutional models.
 
 	Arguments:
-	graph_name -- Name of the graph file used.
+	graph -- graph file used.
 	graph_features -- A list where the indexes are the node's id and the values are the node'srepresentation
 	no_features -- Which set of features will be used. 
 	size -- size of the feature array
@@ -105,10 +137,6 @@ def gcn_features(graph, graph_features, no_features, size):
 	for i in nodes:
 		features[i] = get_features(graph_features[i], no_features)
 	return features   
-
-
-
-
 
 def generate_dataset(graph_name, no_edges, no_features, siamese=0):
 	"""
@@ -125,7 +153,6 @@ def generate_dataset(graph_name, no_edges, no_features, siamese=0):
 	edge_index -- A COO adjacency matrix of the graph
 	features -- A special matrix of features used on convolutional models, similar to the graph_features
 	"""	
-
 	print('Generating dataset... ', end='\r')
 	file = open(graph_name, 'rb')
 	graph = pk.load(file)
