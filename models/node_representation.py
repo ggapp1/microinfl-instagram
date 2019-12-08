@@ -7,6 +7,7 @@ from gensim.models import Word2Vec
 from nltk.tokenize import RegexpTokenizer
 from sklearn.decomposition import LatentDirichletAllocation
 from sklearn.feature_extraction.text import CountVectorizer
+import sys
 
 class Node:
 	def __init__(self, node, embedding, features, walk):
@@ -15,18 +16,16 @@ class Node:
 		self.features = features
 		self.walk = walk
 
-def load_node2vec():
-	file = open('sampled_10k', 'rb')
-	G = pickle.load(file)
-
+def load_node2vec(node2vec_file):
 	node2vec = {}
 	print('# loading node2vec...', end='\r')
-	with open('wiki.emb') as file:
+	with open(node2vec_file) as file:
 		next(file)
 		for line in file:
 			l = [float(i) for i in line.split()]
 			node2vec[int(l[0])] = l[1:]
 	print('# node2vec ok		   \n')
+
 	return node2vec		
 
 
@@ -38,41 +37,42 @@ def print_top_words(model, feature_names, n_top_words):
 	topics = [t[0] for t in topics]
 	return topics
 
-def lda_tags(tags):
+def lda_text(text):
 	number_topics = 3
 	no_top_words = 1
 	no_features = 10
 	# LDA can only use raw term counts for LDA because it is a probabilistic graphical model
 	ct_vectorizer = CountVectorizer(max_features=no_features)
-	tags_ct = ct_vectorizer.fit_transform(tags)
+	text_ct = ct_vectorizer.fit_transform(text)
 
 	lda = LatentDirichletAllocation(n_components=number_topics, n_jobs=-1)
-	lda.fit(tags_ct)
+	lda.fit(text_ct)
 	
 	ct_features_names = ct_vectorizer.get_feature_names()
 	return print_top_words(lda, ct_features_names, no_top_words)
 
-def load_tags(size_w2v):
-	file = open('text_test_etc', 'rb')
-	users_tags = pickle.load(file)
+def load_text(text_file, size_w2v):
+	file = open(text_file, 'rb')
+	users_text = pickle.load(file)
 	file.close()
 	tokenizer = RegexpTokenizer(r'\w+')
 
-	df_user_tags = pd.DataFrame(list(users_tags.items()), columns=['username', 'tags'])
-	df_user_tags['tags'] = df_user_tags['tags'].apply(lambda x: tokenizer.tokenize(str(x)))
-	tags = df_user_tags['tags'].tolist()
-	print('# running w2v...', end='\r')
-	w2v_model = Word2Vec(tags, size=size_w2v, window=5, 
-						min_count=1, workers=6, max_vocab_size=200000)
-	print("# w2v ok			\n")
-	return df_user_tags, tags, w2v_model
+	df_user_text = pd.DataFrame(list(users_text.items()), columns=['username', 'text'])
+	df_user_text['text'] = df_user_text['text'].apply(lambda x: tokenizer.tokenize(str(x)))
 
-def get_topics_w2v(username, size_w2v, df_user_tags, tags, w2v_model):
+	text = df_user_text['text'].tolist()
+	print('# running w2v...', end='\r')
+	w2v_model = Word2Vec(text, size=size_w2v, window=5, min_count=1, workers=6, max_vocab_size=200000)
+	print("# w2v ok		        	\n")
+
+	return df_user_text, text, w2v_model
+
+def get_topics_w2v(username, size_w2v, df_user_text, text, w2v_model):
 	try:
-		tags = df_user_tags['tags'][df_user_tags['username'] == username].tolist()
+		text = df_user_text['text'][df_user_text['username'] == username].tolist()
 		w2v = []
-		if(len(tags[0]) > 0):
-			topics = lda_tags(tags[0])
+		if(len(text[0]) > 0):
+			topics = lda_text(text[0])
 			for topic in topics:
 				w2v.append(w2v_model.wv[topic])
 		else:
@@ -95,49 +95,41 @@ def random_walk_sampling_simple(complete_graph, origin_index, nodes_to_sample):
 	return sampled_graph
 
 def main():
-	file = open('wiki_sampled', 'rb')
+	"""
+	generates a pickle file containig the graph features. The ouputfile is named graphname_features
+	"""
+	if(len(sys.argv) < 6) :
+		print('Usage : python node_representation.py graphfile node2vec_file text_file word2vec_size, size_walk')
+		exit()
+
+	graph, node2vec_file, text_file, size_w2v, size_walk  = sys.argv[1], sys.argv[2], sys.argv[3], int(sys.argv[4]), int(sys.argv[5])	
+	#loads graph, word2vec corpora and node2vec model
+	file = open(graph, 'rb')
 	G = pickle.load(file) 
 	file.close()
+	node2vec = load_node2vec(node2vec_file)
+	df_user_text, text, w2v_model = load_text(text_file, size_w2v)
 
-	graph_data = {}
-	i, j = 0, 0
-	size_w2v = 128
-	size_walk = 3
-	sanity = np.zeros([3,size_w2v])
 	G = G.to_directed()
 	G =  nx.convert_node_labels_to_integers(G)
 
-	nodes1 = list(G.nodes)
+	nodes = list(G.nodes)
+	graph_data = {}
 
-	
-
-	node2vec = load_node2vec()
-	#df_user_tags, tags, w2v_model = load_tags(size_w2v)
 	print('# iterating... ')
-	for node in nodes1:
-		username = node#G.nodes[node]['username']
+	for node in nodes:
+		username = node
 		emb = node2vec[node]
-		#features = get_topics_w2v(username, size_w2v, df_user_tags, tags, w2v_model)
-		features = np.zeros([3,size_w2v])
+		features = get_topics_w2v(username, size_w2v, df_user_text, text, w2v_model)
 		walk_nodes = random_walk_sampling_simple(G, node, size_walk)
 		walk = []
 		for n in walk_nodes:
 			walk.append(node2vec[n])   
-			
 		graph_data[node] = Node(username, emb, features, walk)
-		if np.array_equal(features,sanity):
-			j = j + 1
-		
-		if(i%1000 == 0):
-			print('*** No. of nodes :' +str(i) + '. No. of nodes without tags :'+str(j), end='\r')
 
-		i = i + 1	
-	outfile = open('wiki_sampled_features','wb')
+	print('ok!')	
+	outfile = open(graph+'_features','wb')
 	pickle.dump(graph_data, outfile)
-
-	print('zerados \n')
-	print(j)
-	print(i)
 
 if __name__ == '__main__':
 	main()
