@@ -40,14 +40,14 @@ class SiameseNN(torch.nn.Module):
 def test_model(model, test_dataloader):
 	ypred = []
 	ytest = []
-
+	print('\nTesting...                 ')
 	for data in test_dataloader:
 		node0, node0_features, node1, node1_features, label = data
 		output1, output2 = model(Variable(node0_features).cuda(),Variable(node1_features).cuda())
 		output = F.cosine_similarity(output1, output2)
 		output = output.item()
 		label = label.item()
-		output = 1 if (a>=0) else -1
+		output = 1 if (output>=0) else -1
 		ypred.append(output)
 		ytest.append(label)
 
@@ -57,9 +57,9 @@ def test_model(model, test_dataloader):
 
 def train_model(model, train_dataloader, test_dataloader):
 	criterion = nn.CosineEmbeddingLoss()
-	optimizer = optim.Adam(model.parameters(),lr = 0.0001)
-	number_epochs = 25
-
+	optimizer = optim.Adam(model.parameters(),lr = 0.001)
+	number_epochs = 10
+	print('\nTraining...             ')
 	for epoch in range(number_epochs):
 		for i, data in enumerate(train_dataloader,0):
 			node0, node0_features, node1, node1_features, label = data
@@ -72,17 +72,17 @@ def train_model(model, train_dataloader, test_dataloader):
 			loss.backward()
 			optimizer.step()
 
-		print("Epoch number {}. Current loss {}\r".format(epoch,loss.item()))
+		print("Epoch number {}. Current loss {}     ".format(epoch+1,loss.item()))
 
 	return model
 
 def main():
-	if(len(sys.argv) < 3) :
+	if(len(sys.argv) < 4) :
 		print('Usage : python siamese_nn.py graphfile no_nodes no_features')
 		exit()
 
-	graph, no_nodes, no_features = sys.argv[1], int(sys.argv[1]), int(sys.argv[2])	
-	dataset, graph_features, edge_index, features = generate_dataset(graph, no_nodes, no_features)
+	graph, no_nodes, no_features = sys.argv[1], int(sys.argv[2]), int(sys.argv[3])	
+	dataset, graph_features, edge_index, features = generate_dataset(graph, no_nodes, no_features, siamese=1)
 
 	num_features = len(graph_features[0][1])
 	size_emb = 64

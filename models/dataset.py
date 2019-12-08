@@ -62,7 +62,7 @@ def get_features(node_features, no_features):
 		walk = np.concatenate((node_features.walk[0], node_features.walk[1], node_features.walk[2]))
 		return np.concatenate((node_features.embedding, features, walk))
 
-def sample_graph_features(graph, graph_features, no_edges, no_features=1):
+def sample_graph_features(graph, graph_features, no_edges, no_features=1, siamese=0):
 	sampled_graph = []
 
 	edges = list(graph.edges)
@@ -86,9 +86,10 @@ def sample_graph_features(graph, graph_features, no_edges, no_features=1):
 			node2_neg = nodes[np.random.randint(0,len(nodes) - 1)]
 
 		node1_neg_features = get_features(graph_features[node1_neg], no_features)
-		node2_neg_features = get_features(graph_features[node2_neg], no_features)	
+		node2_neg_features = get_features(graph_features[node2_neg], no_features)
 
-		sampled_graph.append([node1_neg, node1_neg_features, node2_neg, node2_neg_features, 0])
+		neg_edge = -1 if (siamese == 1) else 0
+		sampled_graph.append([node1_neg, node1_neg_features, node2_neg, node2_neg_features, neg_edge])
 																																			  
 	return sampled_graph
 	
@@ -114,7 +115,9 @@ class InstagramDataset(Dataset):
 
 
 
-def generate_dataset(graph_name, no_edges, no_features):
+def generate_dataset(graph_name, no_edges, no_features, siamese=0):
+
+	print('Generating dataset... ', end='\r')
 	file = open(graph_name, 'rb')
 	graph = pk.load(file)
 	file.close()
@@ -126,10 +129,10 @@ def generate_dataset(graph_name, no_edges, no_features):
 	graph = graph.to_directed()
 	graph =  nx.convert_node_labels_to_integers(graph)
 
-	graph_features = sample_graph_features(graph, full_graph_features, no_edges, no_features)
+	graph_features = sample_graph_features(graph, full_graph_features, no_edges, no_features, siamese)
 	dataset = InstagramDataset(graph, graph_features)
 
 	edge_index = torch.tensor(list(graph.edges)).t().contiguous()
 	features = gcn_features(graph, full_graph_features, no_features, len(graph_features[0][1]))
-	print('dataset ok')
+	print('Dataset ok!             ')
 	return dataset, graph_features, edge_index, features							 
