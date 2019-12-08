@@ -17,6 +17,14 @@ class Node:
 		self.walk = walk
 
 def load_node2vec(node2vec_file):
+	"""
+	loads a file that contains the node2vec embeddings for the graph
+
+	Arguments:
+	node2vec_file -- the node2vec file, where eac line is constituted by nodeid node2vec_embedding
+	returns:
+	node2vec -- dict containing the node2vec embeddings
+	"""
 	node2vec = {}
 	print('# loading node2vec...', end='\r')
 	with open(node2vec_file) as file:
@@ -27,7 +35,6 @@ def load_node2vec(node2vec_file):
 	print('# node2vec ok		   \n')
 
 	return node2vec		
-
 
 def print_top_words(model, feature_names, n_top_words):
 	topics=[]
