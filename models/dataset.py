@@ -14,35 +14,30 @@ class Node:
 		self.features = features
 		self.walk = walk
 
-class ContrastiveLoss(torch.nn.Module):
-	"""
-	Contrastive loss function.
-	Based on: http://yann.lecun.com/exdb/publis/pdf/hadsell-chopra-lecun-06.pdf
-	"""
-	def __init__(self, margin=2):
-		super(ContrastiveLoss, self).__init__()
-		self.margin = margin
+class InstagramDataset(Dataset):
+	def __init__(self, graph, features):
+		self.graph = graph
+		self.features = features
+	
+	def __getitem__(self, index):
+		nodes = random.choice(self.features)
+		return torch.tensor(nodes[0]), torch.tensor(nodes[1]).float(), torch.tensor(nodes[2]), torch.tensor(nodes[3]).float(), nodes[4]
 
-	def forward(self, output1, output2, label):
-		euclidean_distance = F.pairwise_distance(output1, output2, keepdim = True)
-		label = label.float()
-		loss_contrastive = torch.mean((1-label) * torch.pow(euclidean_distance, 2) +
-									  (label) * torch.pow(torch.clamp(self.margin - euclidean_distance, min=0.0), 2))
-
-		return loss_contrastive
+	def __len__(self):
+		return len(self.graph)
 
 def split_dataset(dataset, batch_size, validation_split):
-	# Creating data indices for training and validation splits:
+	# Creating data indexes for training and validation splits:
 	dataset_size = len(dataset)
-	indices = list(range(dataset_size))
+	indexes = list(range(dataset_size))
 	split = int(np.floor(validation_split * dataset_size))
 
-	np.random.shuffle(indices)
-	train_indices, val_indices = indices[split:], indices[:split]
+	np.random.shuffle(indexes)
+	train_indexes, val_indexes = indexes[split:], indexes[:split]
 
-	# Creating PT data samplers and loaders:
-	train_sampler = SubsetRandomSampler(train_indices)
-	valid_sampler = SubsetRandomSampler(val_indices)
+	# Creating data samplers and loaders:
+	train_sampler = SubsetRandomSampler(train_indexes)
+	valid_sampler = SubsetRandomSampler(val_indexes)
 	train_dataloader = DataLoader(dataset, batch_size=batch_size, 
 						sampler=train_sampler, num_workers=8,)
 	validation_dataloader = DataLoader(dataset, batch_size=1,
@@ -54,7 +49,6 @@ def split_dataset(dataset, batch_size, validation_split):
 def get_features(node_features, no_features): 
 	if(no_features==1):
 		return node_features.embedding
-
 	features = np.concatenate((node_features.features))	
 	if(no_features==2):
 		return np.concatenate((node_features.embedding, features))
@@ -94,6 +88,17 @@ def sample_graph_features(graph, graph_features, no_edges, no_features=1, siames
 	return sampled_graph
 	
 def gcn_features(graph, graph_features, no_features, size):
+		"""
+	Generates the matrix features used on convolutional models.
+
+	Arguments:
+	graph_name -- Name of the graph file used.
+	graph_features -- A list where the indexes are the node's id and the values are the node'srepresentation
+	no_features -- Which set of features will be used. 
+	size -- size of the feature array
+	Return:
+	features -- A special matrix, mode of numpy arrays, of features used on convolutional models, similar to the graph_features
+	"""	
 	nodes = list(graph.nodes)
 	features = np.zeros((len(nodes),size))
 
@@ -101,21 +106,25 @@ def gcn_features(graph, graph_features, no_features, size):
 		features[i] = get_features(graph_features[i], no_features)
 	return features   
 
-class InstagramDataset(Dataset):
-	def __init__(self, graph, features):
-		self.graph = graph
-		self.features = features
-	
-	def __getitem__(self, index):
-		nodes = random.choice(self.features)
-		return torch.tensor(nodes[0]), torch.tensor(nodes[1]).float(), torch.tensor(nodes[2]), torch.tensor(nodes[3]).float(), nodes[4]
 
-	def __len__(self):
-		return len(self.graph)
 
 
 
 def generate_dataset(graph_name, no_edges, no_features, siamese=0):
+	"""
+	Generates all the necessary data to train the models.
+
+	Arguments:
+	graph_name -- Name of the graph file used.
+	no_edges -- No. of edges that will be sampled to the dataset
+	no_features -- Which set of features will be used. 
+	siamese -- 1 If the dataset is for a siamese network, else 0
+	Return:
+	dataset -- A InstagramDataset object dataset, based torch's class  Dataset
+	graph_features -- A list where the indexes are the node's id and the values are a list of lists with node's representation
+	edge_index -- A COO adjacency matrix of the graph
+	features -- A special matrix of features used on convolutional models, similar to the graph_features
+	"""	
 
 	print('Generating dataset... ', end='\r')
 	file = open(graph_name, 'rb')
@@ -135,4 +144,5 @@ def generate_dataset(graph_name, no_edges, no_features, siamese=0):
 	edge_index = torch.tensor(list(graph.edges)).t().contiguous()
 	features = gcn_features(graph, full_graph_features, no_features, len(graph_features[0][1]))
 	print('Dataset ok!             ')
+
 	return dataset, graph_features, edge_index, features							 

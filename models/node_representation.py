@@ -8,14 +8,12 @@ from nltk.tokenize import RegexpTokenizer
 from sklearn.decomposition import LatentDirichletAllocation
 from sklearn.feature_extraction.text import CountVectorizer
 
-
 class Node:
 	def __init__(self, node, embedding, features, walk):
 		self.node = node
 		self.embedding = embedding
 		self.features = features
 		self.walk = walk
-
 
 def load_node2vec():
 	file = open('sampled_10k', 'rb')
@@ -44,7 +42,6 @@ def lda_tags(tags):
 	number_topics = 3
 	no_top_words = 1
 	no_features = 10
-
 	# LDA can only use raw term counts for LDA because it is a probabilistic graphical model
 	ct_vectorizer = CountVectorizer(max_features=no_features)
 	tags_ct = ct_vectorizer.fit_transform(tags)
@@ -88,7 +85,6 @@ def get_topics_w2v(username, size_w2v, df_user_tags, tags, w2v_model):
 def random_walk_sampling_simple(complete_graph, origin_index, nodes_to_sample):
 	sampled_graph = []
 	curr_node = origin_index
-	
 	while len(sampled_graph) != nodes_to_sample:
 		edges = [n for n in complete_graph.neighbors(curr_node)]
 		index_of_edge = random.randint(0, len(edges) - 1)
