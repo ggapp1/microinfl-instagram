@@ -12,7 +12,6 @@ from scipy.spatial.distance import cosine
 from sklearn.metrics import accuracy_score, f1_score, average_precision_score, roc_curve, precision_recall_curve
 import matplotlib.pyplot as plt
 
-
 class CE(torch.nn.Module):
 	def __init__(self, num_features, size_emb):
 		super(CE, self).__init__()
@@ -34,8 +33,7 @@ class CE(torch.nn.Module):
 		x = F.relu(self.fc4(x))
 		return torch.sigmoid(self.fc5(x))
 
-
-def test_model(model, test_dataloader, test=1):
+def test_model(model, test_dataloader):
 	ypred = []
 	ytest = []
 	print('\nTesting...                 ')
@@ -51,7 +49,6 @@ def test_model(model, test_dataloader, test=1):
 	print('Accuracy: {}'.format(accuracy_score(ytest,ypred)))
 	print('F1-score: {}'.format(f1_score(ytest,ypred)))
 	print('Avg precision score: {}'.format(average_precision_score(ytest,ypred)))
-
 
 def train_model(model, train_dataloader, test_dataloader):
 	criterion = nn.BCELoss()
@@ -70,12 +67,9 @@ def train_model(model, train_dataloader, test_dataloader):
 			loss.backward()
 			optimizer.step()
 
-		print("Epoch number {}. Current loss {}\r     ".format(epoch,loss.item()))
+		print("Epoch number {}. Current loss {}\r     ".format(epoch+1,loss.item()))
 
 	return model
-
-
-
 
 def main():
 	if(len(sys.argv) < 4) :
