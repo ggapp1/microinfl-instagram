@@ -73,9 +73,11 @@ def main():
 	graph, no_nodes, no_features = sys.argv[1], int(sys.argv[2]), int(sys.argv[3])	
 	dataset, graph_features, edge_index, gcn_features = generate_dataset(graph, no_nodes, no_features)
 	num_features = len(graph_features[0][1])
+	#these parameters can be changed
 	size_emb = 64
 	batch_size = 64
 	val_split = .2
+	
 	train_dataloader, val_dataloader = split_dataset(dataset, batch_size, val_split)
 	data = Data(x=torch.tensor(gcn_features).float().cuda(), edge_index=edge_index.cuda(), num_nodes=no_nodes)
 	model = GCN(num_features, size_emb).cuda()

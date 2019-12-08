@@ -78,8 +78,8 @@ def main():
 
 	graph, no_nodes, no_features = sys.argv[1], int(sys.argv[2]), int(sys.argv[3])	
 	dataset, graph_features, edge_index, features = generate_dataset(graph, no_nodes, no_features)
-
 	num_features = len(graph_features[0][1])
+	#these parameters can be changed
 	size_emb = 64
 	batch_size = 128
 	val_split = .2
