@@ -80,6 +80,7 @@ First, we compared the performance of each model for each one of the representat
 ![Image description](https://github.com/ggapp1/microinfl-instagram/blob/master/results/GAT.jpg)
 ![Image description](https://github.com/ggapp1/microinfl-instagram/blob/master/results/GCN.jpg)
 ![Image description](https://github.com/ggapp1/microinfl-instagram/blob/master/results/SNN.jpg)
+![Link prediction performance on Instagram and Wikipedia dataset.](https://github.com/ggapp1/microinfl-instagram/blob/master/results/table.png)
 
 
 ## License
