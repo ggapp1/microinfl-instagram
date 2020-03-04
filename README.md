@@ -76,9 +76,11 @@ ecture proposed by Kipf et al.
 ### Experiments
 First, we compared the performance of each model for each one of the representation strategies. Then, we compared the best ones with the baselines, using  two datasets.
 
+![Image a](https://github.com/ggapp1/microinfl-instagram/blob/master/results/CE.jpg)
+![Image description](https://github.com/ggapp1/microinfl-instagram/blob/master/results/GAT.jpg)
+![Image description](https://github.com/ggapp1/microinfl-instagram/blob/master/results/GCN.jpg)
+![Image description](https://github.com/ggapp1/microinfl-instagram/blob/master/results/SNN.jpg)
 
-
-```
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
