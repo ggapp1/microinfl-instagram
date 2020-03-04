@@ -1,5 +1,6 @@
 # Predicting relationships between users and microinfluencers on instagram
 
+Using microinfluencers to promote a brand or a product has become a common and effective practice on Instagram. However, it is not always clear if the target market will be reached. We modeled this problem as a link prediction task on a nearly bipartite graph and discussed some strategies to solve it.
 
 ## Usage
 
