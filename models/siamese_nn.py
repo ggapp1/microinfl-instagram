@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch import optim
 from torch.autograd import Variable
-from dataset import generate_dataset, split_dataset, Node, ContrastiveLoss
+from dataset import generate_dataset, split_dataset, Node
 from scipy.spatial.distance import cosine
 from sklearn.metrics import accuracy_score, f1_score, average_precision_score, roc_curve, precision_recall_curve
 import matplotlib.pyplot as plt

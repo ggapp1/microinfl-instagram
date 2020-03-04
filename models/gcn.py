@@ -8,7 +8,7 @@ from torch import optim
 from torch_geometric.nn import GCNConv
 from torch.autograd import Variable
 from scipy.spatial.distance import cosine
-from dataset import generate_dataset, split_dataset, Node, ContrastiveLoss
+from dataset import generate_dataset, split_dataset, Node
 from sklearn.metrics import accuracy_score, f1_score, average_precision_score
 from torch_geometric.data import Data
 

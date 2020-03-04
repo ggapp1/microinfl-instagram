@@ -3,7 +3,7 @@ import torch.nn.functional as F
 from torch import optim
 from torch_geometric.nn import GATConv
 from torch.autograd import Variable
-from dataset import generate_dataset, split_dataset, Node, ContrastiveLoss
+from dataset import generate_dataset, split_dataset, Node
 import numpy as np
 import random
 from scipy.spatial.distance import cosine
