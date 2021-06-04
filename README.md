@@ -68,9 +68,9 @@ We Proposed three representation strategies:
 We compared our models with four baselines: Similarity using each of the three node representation proposed and BiNE, a state-of-art embedding algorithm for bipartite graphs.
 - Crossentropy Classifier (CE): A Multilayer Perceptron (MLP) classifier trained with pairs of adjacent and non adjacent nodes.
 
-- Graph Convolutional Network (GCN): Based on the archit
-ecture proposed by Kipf et al.
--Graph Attention Network (GAT): Based on the architecture proposed by Veličković et al.
+- Graph Convolutional Network (GCN): Based on the architecture proposed by Kipf et al.
+
+- Graph Attention Network (GAT): Based on the architecture proposed by Veličković et al.
 
 - Siamese Neural Network (SNN): A siamese neural network trained with pairs of adjacent and non adjacent nodes.
 
